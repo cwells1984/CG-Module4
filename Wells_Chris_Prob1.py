@@ -3,28 +3,16 @@
 # The output will go to std out
 import random
 import sys
+import utilities
 
 
-class InnerXNode:
-    def __init__(self, endpoint, left, right):
+class TreeNode:
+    def __init__(self, type, data, left, right):
         self.parent = None
-        self.endpoint = endpoint
+        self.type = type
+        self.data = data
         self.left = left
         self.right = right
-
-
-class InnerYNode:
-    def __init__(self, segment, left, right):
-        self.parent = None
-        self.segment = segment
-        self.left = left
-        self.right = right
-
-
-class OuterNode:
-    def __init__(self, trapezoid):
-        self.parent = None
-        self.trapezoid = trapezoid
 
 
 class Trapezoid:
@@ -68,62 +56,23 @@ def read_input_csv(input_file):
     return input_segments
 
 
-# Create the initial box encompassing all the line segments
-def create_bounding_box(segments):
-    left_point = None
-    right_point = None
-    top_point = None
-    bottom_point = None
-
-    for segment in segments:
-        p = segment[1]
-        q = segment[2]
-
-        # are either points left of the current leftmost point?
-        if left_point is None or p[0] < left_point[0]:
-            left_point = p
-        if left_point is None or q[0] < left_point[0]:
-            left_point = q
-
-        # are either points right of the current rightmost point?
-        if right_point is None or p[0] > right_point[0]:
-            right_point = p
-        if right_point is None or q[0] > right_point[0]:
-            right_point = q
-
-        # are either points below the current bottommost point?
-        if bottom_point is None or p[1] < bottom_point[1]:
-            bottom_point = p
-        if bottom_point is None or q[1] < bottom_point[1]:
-            bottom_point = q
-
-        # are either points above the current topmost point?
-        if top_point is None or p[1] > top_point[1]:
-            top_point = p
-        if top_point is None or q[1] > top_point[1]:
-            top_point = q
-
-    # Now create a trapezoid representing the bounding box
-    top_segment = ((left_point[0], top_point[1]), (right_point[0], top_point[1]))
-    bottom_segment = ((left_point[0], bottom_point[1]), (right_point[0], bottom_point[1]))
-    t = Trapezoid(left_point, right_point, top_segment, bottom_segment)
-    return t
-
-
 # Search the tree for a particular point, returning a trapezoid
 def search_for_point(search_tree, point):
-    if isinstance(search_tree, OuterNode):
+
+    # If we have reached an outer node, return it
+    if search_tree.type == "outer":
         return search_tree
-    if isinstance(search_tree, InnerXNode):
-        if point[0] < search_tree.endpoint[0]:
+
+    # If we have reached an inner x node, go left if the point is left of the node's endpoint
+    if search_tree.type == "innerx":
+        if utilities.is_left(point, search_tree.data):
             return search_for_point(search_tree.left, point)
         else:
             return search_for_point(search_tree.right, point)
-    if isinstance(search_tree, InnerYNode):
-        diff = InnerYNode.segment[1] - InnerYNode.segment[0]
-        slope = diff[1]/diff[0]
-        interp_y = (point[0] - InnerYNode.segment[0][0]) * slope
-        if point[1] > interp_y:
+
+    # if we have reached an inner y node, go left if the point is above the node's segment
+    if search_tree.type == "innery":
+        if utilities.is_above(search_tree.data, point):
             return search_for_point(search_tree.left, point)
         else:
             return search_for_point(search_tree.right, point)
@@ -143,49 +92,23 @@ def follow_segment(search_tree, segment):
 def trapezoidal_map(segments):
 
     # create the initial search structure and a random permutation of the segments list
-    initial_bounding_box = create_bounding_box(segments)
-    search_root = OuterNode(initial_bounding_box)
-    random.shuffle(segments)
+    initial_bounding_box = utilities.create_bounding_box(segments)
+    search_root = TreeNode("outer", initial_bounding_box, None, None)
+    #random.shuffle(segments)
+    segments = segments[0:1]
 
     for segment in segments:
-        p = segment[1]
-        q = segment[2]
+
         int_trapezoids = follow_segment(search_root, segment)
 
         # If there is only one trapezoid it is simple
         if len(int_trapezoids) == 1:
-            t_node = int_trapezoids[0]
-            t = t_node.trapezoid
+            new_root = utilities.update_one_trapezoid(int_trapezoids[0], segment)
+            if new_root is not None:
+                search_root = new_root
 
-            # Create a new subtree with the new trapezoids
-            trap_a = OuterNode(Trapezoid(None, p, t.top_segment, t.bottom_segment))
-            trap_b = OuterNode(Trapezoid(q, None, t.top_segment, t.bottom_segment))
-            trap_c = OuterNode(Trapezoid(p, q, None, segment))
-            trap_d = OuterNode(Trapezoid(p, q, segment, None))
-            p_node = InnerXNode(p, None, None)
-            q_node = InnerXNode(q, None, None)
-            s_node = InnerYNode(segment, None, None)
-            p_node.left = trap_a
-            p_node.right = q_node
-            q_node.left = s_node
-            q_node.right = trap_b
-            s_node.left = trap_c
-            s_node.right = trap_d
-
-            # Now replace the node in the tree
-            if t_node.parent is None:
-                search_root = p_node
-            else:
-                p = t_node.parent
-                if p.left == t_node:
-                    p.left = p_node
-                    p_node.parent = p
-                if p.right == t_node:
-                    p.right = p_node
-                    p_node.parent = p
-
-        # TEMPORARY return the tree after the first segment
-        return search_root
+    # return the top node of the search structure
+    return search_root
 
 
 # Press the green button in the gutter to run the script.
@@ -198,8 +121,8 @@ if __name__ == '__main__':
     read_input_segments = read_input_csv(input_filename)
 
     # Now search for point 6,4
-    search_root = trapezoidal_map(read_input_segments)
-    t = search_for_point(search_root, (6,4))
-    print(t.trapezoid)
+    search_tree_root = trapezoidal_map(read_input_segments)
+    t = search_for_point(search_tree_root, (6,4))
+    print(t.data)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
