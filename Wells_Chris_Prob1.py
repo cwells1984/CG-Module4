@@ -85,6 +85,18 @@ def follow_segment(search_tree, segment):
     int_trapezoids = [search_for_point(search_tree, p)]
     j = 0
 
+    prev_trapezoid = int_trapezoids[0].data
+    while utilities.is_right(q, prev_trapezoid.right_point) is True:
+        if utilities.is_above(segment, prev_trapezoid.right_point):
+            new_trapezoid = Trapezoid(prev_trapezoid.right_point, q, segment, None)
+            int_trapezoids.append(new_trapezoid)
+            prev_trapezoid = new_trapezoid
+        else:
+            new_trapezoid = Trapezoid(prev_trapezoid.right_point, q, None, segment)
+            int_trapezoids.append(new_trapezoid)
+            prev_trapezoid = new_trapezoid
+        j += 1
+
     return int_trapezoids
 
 
@@ -95,7 +107,6 @@ def trapezoidal_map(segments):
     initial_bounding_box = utilities.create_bounding_box(segments)
     search_root = TreeNode("outer", initial_bounding_box, None, None)
     #random.shuffle(segments)
-    segments = segments[0:1]
 
     for segment in segments:
 

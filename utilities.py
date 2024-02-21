@@ -74,6 +74,14 @@ def is_left(p1, p2):
         return False
 
 
+# Determines if the point p1 is right of p2
+def is_right(p1, p2):
+    if p1[0] > p2[0]:
+        return True
+    else:
+        return False
+
+
 # Updates search structure when there is 1 intersecting trapezoid
 def update_one_trapezoid(t_node, segment):
 
