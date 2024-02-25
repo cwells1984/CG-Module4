@@ -125,7 +125,8 @@ def trapezoidal_map(segments):
                 search_root = new_root
 
         if len(int_trapezoids) > 1:
-            print("Intersected multiple trapezoids")
+            Utilities.update_mult_trapezoids(int_trapezoids, segment)
+            print("updated")
 
     # return the top node of the search structure
     return search_root

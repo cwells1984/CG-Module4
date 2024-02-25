@@ -82,6 +82,47 @@ def is_right(p1, p2):
         return False
 
 
+def update_mult_trapezoids(t_list, segment):
+
+    # Get the segment endpoints
+    p = segment[1]
+    q = segment[2]
+
+    # The first (leftmost) trapezoid will be divided into 3 trapezoids. Update the search structure
+    # Create the 3 new trapezoids
+    t_first = t_list[0]
+    trap_a = TreeNode("outer", Trapezoid(t_first.left_point, p, t_first.top_segment, t_first.bottom_segment, None), None, None)
+    trap_a.data.search_node = trap_a
+    trap_b = TreeNode("outer", Trapezoid(p, t_first.right_point, t_first.top_segment, segment, None), None, None)
+    trap_b.data.search_node = trap_b
+    trap_c = TreeNode("outer", Trapezoid(p, t_first.right_point, segment, t_first.bottom_segment, None), None, None)
+    trap_c.data.search_node = trap_c
+
+    # Create a new subtree with the new trapezoids
+    p_node = TreeNode("innerx", p, None, None)
+    s_node = TreeNode("innery", segment, None, None)
+
+    # Set the parent/child relationships
+    if t_first.search_node.parent.left == t_first.search_node:
+        t_first.search_node.parent.left = p_node
+    if t_first.search_node.parent.right == t_first.search_node:
+        t_first.search_node.parent.right = p_node
+
+    p_node.parent = t_first.search_node.parent
+    p_node.left = trap_a
+    p_node.right = s_node
+
+    trap_a.parent = p_node
+
+    s_node.parent = p_node
+    s_node.left = trap_b
+    s_node.right = trap_c
+
+    trap_b.parent = s_node
+
+    trap_c.parent = s_node
+
+
 # Updates search structure when there is 1 intersecting trapezoid
 def update_one_trapezoid(t, segment):
 
