@@ -3,7 +3,7 @@
 # The output will go to std out
 import random
 import sys
-import Wells_Chris_Prob1_Utilities as utilities
+import Wells_Chris_Prob1_Utilities as Utilities
 
 
 class TreeNode:
@@ -68,14 +68,14 @@ def search_for_point(search_tree, point):
 
     # If we have reached an inner x node, go left if the point is left of the node's endpoint
     if search_tree.type == "innerx":
-        if utilities.is_left(point, search_tree.data):
+        if Utilities.is_left(point, search_tree.data):
             return search_for_point(search_tree.left, point)
         else:
             return search_for_point(search_tree.right, point)
 
     # if we have reached an inner y node, go left if the point is above the node's segment
     if search_tree.type == "innery":
-        if utilities.is_above(search_tree.data, point):
+        if Utilities.is_above(search_tree.data, point):
             return search_for_point(search_tree.left, point)
         else:
             return search_for_point(search_tree.right, point)
@@ -89,8 +89,8 @@ def follow_segment(search_tree, segment):
     j = 0
 
     prev_trapezoid = int_trapezoids[0]
-    while utilities.is_right(q, prev_trapezoid.right_point) is True:
-        if utilities.is_above(segment, prev_trapezoid.right_point):
+    while Utilities.is_right(q, prev_trapezoid.right_point) is True:
+        if Utilities.is_above(segment, prev_trapezoid.right_point):
             new_trapezoid = Trapezoid(prev_trapezoid.right_point, q, None, segment, None)
             prev_trapezoid.lr_neighbor = new_trapezoid
             int_trapezoids.append(new_trapezoid)
@@ -109,7 +109,7 @@ def follow_segment(search_tree, segment):
 def trapezoidal_map(segments):
 
     # create the initial search structure and a random permutation of the segments list
-    initial_bounding_box = utilities.create_bounding_box(segments)
+    initial_bounding_box = Utilities.create_bounding_box(segments)
     search_root = TreeNode("outer", initial_bounding_box, None, None)
     initial_bounding_box.search_node = search_root
     #random.shuffle(segments)
@@ -120,7 +120,7 @@ def trapezoidal_map(segments):
 
         # If there is only one trapezoid it is simple
         if len(int_trapezoids) == 1:
-            new_root = utilities.update_one_trapezoid(int_trapezoids[0], segment)
+            new_root = Utilities.update_one_trapezoid(int_trapezoids[0], segment)
             if new_root is not None:
                 search_root = new_root
 
