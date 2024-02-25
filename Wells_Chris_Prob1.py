@@ -3,7 +3,7 @@
 # The output will go to std out
 import random
 import sys
-import utilities
+import Wells_Chris_Prob1_Utilities
 
 
 class TreeNode:
