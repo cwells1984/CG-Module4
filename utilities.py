@@ -107,10 +107,33 @@ def update_one_trapezoid(t, segment):
     # Set the parent/child relationships
     p_node.left = trap_a
     p_node.right = q_node
+
+    trap_a.parent = p_node
+
+    q_node.parent = p_node
     q_node.left = s_node
     q_node.right = trap_b
+
+    s_node.parent = q_node
     s_node.left = trap_c
     s_node.right = trap_d
 
+    trap_c.parent = s_node
+
+    trap_d.parent = s_node
+
+    trap_b.parent = q_node
+
     # If the node was the root node return the created p x-node as the new root
-    return p_node
+    if t.search_node.parent is None:
+        return p_node
+    # Otherwise replace the node
+    else:
+        parent_node = t.search_node.parent
+        if parent_node.left == t.search_node:
+            parent_node.left = p_node
+            p_node.parent = parent_node
+        if parent_node.right == t.search_node:
+            parent_node.right = p_node
+            p_node.parent = parent_node
+        return None

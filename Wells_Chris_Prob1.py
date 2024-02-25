@@ -8,6 +8,7 @@ import utilities
 
 class TreeNode:
     def __init__(self, type, data, left, right):
+        self.parent = None
         self.type = type
         self.data = data
         self.left = left
@@ -120,7 +121,8 @@ def trapezoidal_map(segments):
         # If there is only one trapezoid it is simple
         if len(int_trapezoids) == 1:
             new_root = utilities.update_one_trapezoid(int_trapezoids[0], segment)
-            search_root = new_root
+            if new_root is not None:
+                search_root = new_root
 
         if len(int_trapezoids) > 1:
             print("Intersected multiple trapezoids")
