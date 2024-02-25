@@ -8,7 +8,6 @@ import utilities
 
 class TreeNode:
     def __init__(self, type, data, left, right):
-        self.parent = None
         self.type = type
         self.data = data
         self.left = left
@@ -16,11 +15,14 @@ class TreeNode:
 
 
 class Trapezoid:
-    def __init__(self, left_point, right_point, top_segment, bottom_segment):
+    def __init__(self, left_point, right_point, top_segment, bottom_segment, search_node):
         self.left_point = left_point
         self.right_point = right_point
         self.top_segment = top_segment
         self.bottom_segment = bottom_segment
+        self.search_node = search_node
+        self.lr_neighbor = None
+        self.ur_neighbor = None
 
     def __str__(self):
         s = ""
@@ -61,7 +63,7 @@ def search_for_point(search_tree, point):
 
     # If we have reached an outer node, return it
     if search_tree.type == "outer":
-        return search_tree
+        return search_tree.data
 
     # If we have reached an inner x node, go left if the point is left of the node's endpoint
     if search_tree.type == "innerx":
@@ -85,14 +87,16 @@ def follow_segment(search_tree, segment):
     int_trapezoids = [search_for_point(search_tree, p)]
     j = 0
 
-    prev_trapezoid = int_trapezoids[0].data
+    prev_trapezoid = int_trapezoids[0]
     while utilities.is_right(q, prev_trapezoid.right_point) is True:
         if utilities.is_above(segment, prev_trapezoid.right_point):
-            new_trapezoid = Trapezoid(prev_trapezoid.right_point, q, segment, None)
+            new_trapezoid = Trapezoid(prev_trapezoid.right_point, q, None, segment, None)
+            prev_trapezoid.lr_neighbor = new_trapezoid
             int_trapezoids.append(new_trapezoid)
             prev_trapezoid = new_trapezoid
         else:
-            new_trapezoid = Trapezoid(prev_trapezoid.right_point, q, None, segment)
+            new_trapezoid = Trapezoid(prev_trapezoid.right_point, q, segment, None, None)
+            prev_trapezoid.ur_neighbor = new_trapezoid
             int_trapezoids.append(new_trapezoid)
             prev_trapezoid = new_trapezoid
         j += 1
@@ -106,6 +110,7 @@ def trapezoidal_map(segments):
     # create the initial search structure and a random permutation of the segments list
     initial_bounding_box = utilities.create_bounding_box(segments)
     search_root = TreeNode("outer", initial_bounding_box, None, None)
+    initial_bounding_box.search_node = search_root
     #random.shuffle(segments)
 
     for segment in segments:
@@ -115,8 +120,10 @@ def trapezoidal_map(segments):
         # If there is only one trapezoid it is simple
         if len(int_trapezoids) == 1:
             new_root = utilities.update_one_trapezoid(int_trapezoids[0], segment)
-            if new_root is not None:
-                search_root = new_root
+            search_root = new_root
+
+        if len(int_trapezoids) > 1:
+            print("Intersected multiple trapezoids")
 
     # return the top node of the search structure
     return search_root
@@ -133,7 +140,8 @@ if __name__ == '__main__':
 
     # Now search for point 6,4
     search_tree_root = trapezoidal_map(read_input_segments)
-    t = search_for_point(search_tree_root, (6,4))
-    print(t.data)
+    t = search_for_point(search_tree_root, (2,2))
+    print("Point (2,2) is located in the trapezoid at:")
+    print(t)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
